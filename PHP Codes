@@ -1,0 +1,194 @@
+// CREATING THE TABLES
+
+<?php
+
+$hostname = ''; // Replace with host name
+$username = ''; // Replace with user name
+$password = ''; // Replace with password
+$database = ''; // Replace with database
+$link = mysqli_connect(hostname, username, password);
+$query = '';
+
+// Check if connection can be established
+if(!$link){
+	$output = 'Unable to connect to the server.';
+	echo $output;
+	exit();
+}
+
+// Check if database exists
+if(!mysqli_select_db($link, $database)){
+	$output = 'Database does not exist.';
+	echo $output;
+	exit();
+}
+
+// Create SERLER table if not present
+$test = mysqli_query('SELECT 1 FROM SERLER');
+if($test!==FALSE){
+	$query = "CREATE TABLE SERLER(
+				serler_paper_id INT(11) NOT NULL PRIMARY KEY FOREIGN_KEY REFERENCES PAPER(paper_id),
+				serler_paper_user_id INT(11),
+				serler_paper_date_submitted DATETIME,
+				serler_paper_rating_id INT(11))";
+	if(!mysqli_query($link, $query)){
+		$output = 'Error creating SERLER table. ' . mysqli_error($link);
+		echo $output;
+		exit();
+	}
+}
+
+// Create USER table if not present
+$test = mysqli_query('SELECT 1 FROM USER');
+if($test!==FALSE){
+	$query = "CREATE TABLE USER(
+				user_id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				user_name VARCHAR(30) NOT NULL,
+				user_password VARCHAR(15) NOT NULL,
+				user_email VARCHAR(50) NOT NULL,
+				user_is_mod BOOLEAN,
+				user_is_admin BOOLEAN,
+				user_date_registered DATETIME NOT NULL,
+				user_date_modified DATETIME))";
+	if(!mysqli_query($link, $query)){
+		$output = 'Error creating USER table. ' . mysqli_error($link);
+		echo $output;
+		exit();
+	}
+}
+
+// Create PAPER table if not present
+$test = mysqli_query('SELECT 1 FROM PAPER');
+if($test!==FALSE){
+	$query = "CREATE TABLE PAPER(
+				paper_id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				paper_submitter_id INT(11),
+				paper_moderator_id INT(11),
+				paper_name VARCHAR(50) NOT NULL,
+				paper_link VARCHAR(50),
+				paper_bibliography VARCHAR(255) NOT NULL,
+				paper_rating_id INT(11),
+				paper_research_level ENUM('Beginner', 'Medium', 'Advanced'),
+				paper_methodology_researched ENUM() NOT NULL,
+				paper_practice_investigated ENUM() NOT NULL,
+				paper_evidence_id INT(11),
+				paper_research_question VARCHAR(255),
+				paper_research_method ENUM(),
+				paper_research_metrics VARCHAR(255),
+				paper_participants ENUM(),
+				paper_date_submitted DATETIME,
+				paper_date_modified DATETIME)";
+	if(!mysqli_query($link, $query)){
+		$output = 'Error creating PAPER table. ' . mysqli_error($link);
+		echo $output;
+		exit();
+	}		
+}
+
+// Create REJECTED_PAPER table if not present
+$test = mysqli_query('SELECT 1 FROM REJECTED_PAPER');
+if($test!==FALSE){
+	$query = "CREATE TABLE REJECTED_PAPER(
+				rejected_paper_id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				rejected_paper_link VARCHAR(50),
+				rejected_paper_bibliography VARCHAR(255) NOT NULL,
+				rejected_paper_research_level ENUM('Beginner', 'Medium', 'Advanced'),
+				rejected_paper_methodology_researched ENUM() NOT NULL,
+				rejected_paper_practice_investigated ENUM() NOT NULL,
+				rejected_paper_evidence_id INT(11),
+				rejected_paper_research_question VARCHAR(255),
+				rejected_paper_research_method ENUM(),
+				rejected_paper_research_metrics VARCHAR(255),
+				rejected_paper_participants ENUM())";
+	if(!mysqli_query($link, $query)){
+		$output = 'Error creating REJECTED_PAPER table. ' . mysqli_error($link);
+		echo $output;
+		exit();
+	}		
+}
+
+// Create EVIDENCE_ITEM table if not present
+$test = mysqli_query('SELECT 1 FROM EVIDENCE_ITEM');
+if($test!==FALSE){
+	$query = "CREATE TABLE EVIDENCE_ITEM(
+				evidence_id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				evidence_description VARCHAR(255),
+				evidence_context VARCHAR(255),
+				evidence_context_who VARCHAR(30),
+				evidence_context_what VARCHAR(255),
+				evidence_context_where VARCHAR(50),
+				evidence_context_when DATE,
+				evidence_context_how VARCHAR(255),
+				evidence_context_why VARCHAR(255),
+				evidence_integrity VARCHAR(255),
+				evidence_rating_id INT(11))";
+	if(!mysqli_query($link, $query)){
+		$output = 'Error creating EVIDENCE_ITEM table. ' . mysqli_error($link);
+		echo $output;
+		exit();
+	}		
+}
+
+// Create RATING table if not present
+$test = mysqli_query('SELECT 1 FROM RATING');
+if($test!==FALSE){
+	$query = "CREATE TABLE RATING(
+				rating_id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				rating_paper_id INT(11),
+				rating_evidence_id INT(11),
+				rating_number ENUM('1', '2', '3', '4', '5'),
+				rating_reason VARCHAR(255),
+				rating_user_id INT(11) FOREIGN_KEY REFERENCES USER(user_id))";
+	if(!mysqli_query($link, $query)){
+		$output = 'Error creating RATING table. ' . mysqli_error($link);
+		echo $output;
+		exit();
+	}	
+}
+
+mysqli_close();
+	
+?>
+
+// INPUT DATA INTO REPOSITORY
+
+<?php
+
+$hostname = ''; // Replace with host name
+$username = ''; // Replace with user name
+$password = ''; // Replace with password
+$database = ''; // Replace with database
+$link = mysqli_connect(hostname, username, password);
+$query = '';
+$paper_id = $_GET['paper_id'];
+$user_id = $_GET['user_id'];
+$date_submitted = $_GET['date_submitted'];
+
+// Check if connection can be established
+if(!$link){
+	$output = 'Unable to connect to the server.';
+	echo $output;
+}
+
+// Check if database exists
+if(!mysqli_select_db($link, $database)){
+	$output = 'Database does not exist.';
+	echo $output;
+}
+
+// Check if SERLER table is present
+if(!mysqli_select_db($link, 'SERLER')){
+	$output = 'Unable to connect to SERLER table.';
+	echo $output;
+}else{
+	$query = 'INSERT INTO SERLER VALUES('.$paper_id.','.$user_id.','.$date_submitted.')';
+	if(!mysqli_query($link, $query)){
+		$output = 'Error inputting data to SERLER.';
+		echo $output;
+		exit();
+	}
+}
+
+mysqli_close();
+	
+?>
